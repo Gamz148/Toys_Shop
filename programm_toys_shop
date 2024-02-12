@@ -1,0 +1,112 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+class Toy {
+    private int id;
+    private String name;
+    private int quantity;
+    private int weight;
+
+    public Toy(int id, String name, int quantity, int weight) {
+        this.id = id;
+        this.name = name;
+        this.quantity = quantity;
+        this.weight = weight;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+}
+
+class ToyShop {
+    private List<Toy> toys;
+
+    public ToyShop() {
+        toys = new ArrayList<>();
+    }
+
+    public void addToy(Toy toy) {
+        toys.add(toy);
+    }
+
+    public void updateToyWeight(int toyId, int newWeight) {
+        for (Toy toy : toys) {
+            if (toy.getId() == toyId) {
+                toy.setWeight(newWeight);
+                return;
+            }
+        }
+        System.out.println("Игрушка с ID " + toyId + " не найдена.");
+    }
+
+    public Toy drawToy() {
+        int totalWeight = toys.stream().mapToInt(Toy::getWeight).sum();
+        int randomNumber = new Random().nextInt(totalWeight);
+        int weightSum = 0;
+
+        for (Toy toy : toys) {
+            weightSum += toy.getWeight();
+            if (randomNumber < weightSum) {
+                Toy selectedToy = toy;
+                if (selectedToy.getQuantity() > 0) {
+                    selectedToy.setQuantity(selectedToy.getQuantity() - 1);
+                    return selectedToy;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void saveToyToFile(Toy toy) {
+        try (FileWriter writer = new FileWriter("prize_toys.txt", true)) {
+            writer.write(toy.getName() + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        ToyShop toyShop = new ToyShop();
+
+        // Добавляем игрушки в магазин (ID, название, количество, вес)
+        toyShop.addToy(new Toy(1, "Кукла", 10, 30)); 
+        toyShop.addToy(new Toy(2, "Мяч", 15, 20));
+        toyShop.addToy(new Toy(3, "Машинка", 20, 50));
+
+        // Меняем вес (частоту выпадения) одной из игрушек (ID игрушки, новый вес)
+        toyShop.updateToyWeight(1, 40); 
+
+        // Розыгрыш игрушки
+        Toy prizeToy = toyShop.drawToy();
+        if (prizeToy != null) {
+            System.out.println("Выиграна игрушка: " + prizeToy.getName());
+            toyShop.saveToyToFile(prizeToy);
+        } else {
+            System.out.println("Нет доступных игрушек для розыгрыша.");
+        }
+    }
+}
